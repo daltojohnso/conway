@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import Grid from './Grid';
+import {CanvasGrid} from './Grid';
 
 let size = 50;
 const initialMatrix = buildRandomMatrix(size);
@@ -19,8 +19,8 @@ function App() {
   });
 
   return (
-    <main>
-      <Grid matrix={matrix} />
+    <main className="w-screen h-screen">
+      <CanvasGrid matrix={matrix} />
       <div>Count: {count}</div>
     </main>
   )
