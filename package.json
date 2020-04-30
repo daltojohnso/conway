@@ -6,7 +6,7 @@
     "classnames": "^2.2.6",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-scripts": "3.0.1"
+    "react-scripts": "^3.4.1"
   },
   "scripts": {
     "build:css": "postcss src/styles/index.css -o src/index.css",
@@ -36,6 +36,6 @@
     "@fullhuman/postcss-purgecss": "^1.2.0",
     "autoprefixer": "^9.6.0",
     "postcss-cli": "^6.1.2",
-    "tailwindcss": "^1.0.4"
+    "tailwindcss": "^1.4.0"
   }
 }
