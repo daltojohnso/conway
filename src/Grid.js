@@ -12,16 +12,16 @@ export const DivGrid = ({matrix}) => {
   return <div className="flex flex-col">{grid}</div>;
 };
 
-const gridlines = `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+const gridlines = size => `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
      <defs>
-        <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5" />
+        <pattern id="smallGrid" width="${size}" height="${size}" patternUnits="userSpaceOnUse">
+            <path d="M ${size} 0 L 0 0 0 ${size}" fill="none" stroke="gray" stroke-width="0.5" />
         </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#smallGrid)" />
 </svg>`;
 
-export const CanvasGrid = ({matrix, flip}) => {
+export const CanvasGrid = ({matrix, flip, stop, size}) => {
     const canvasRef = useRef(null);
     const [xy, setXY] = useState([-1, -1]);
     const [isClicking, setIsClicking] = useState(false);
@@ -29,7 +29,7 @@ export const CanvasGrid = ({matrix, flip}) => {
     useEffect(() => {
         const canvas = canvasRef.current;
         const img = new Image();
-        const svg = new Blob([gridlines], { type: 'image/svg+xml;charset=utf-8' });
+        const svg = new Blob([gridlines(size)], { type: 'image/svg+xml;charset=utf-8' });
         const url = window.URL.createObjectURL(svg);
         img.src = url;
         img.onload = () => {
@@ -37,29 +37,30 @@ export const CanvasGrid = ({matrix, flip}) => {
             ctx.drawImage(img, 0, 0);
             window.URL.revokeObjectURL(url);
         }
-    });
+    }, [size]);
 
     const onMousedown = useCallback(e => {
         setIsClicking(true);
-        const {pageX, pageY} = e;
-        const x = pageX / 10 | 0;
-        const y = pageY / 10 | 0;
+        console.log(e);
+        const {offsetX, offsetY} = e;
+        const x = offsetX / size | 0;
+        const y = offsetY / size | 0;
         setXY([x, y]);
         flip(x, y);
-    }, [flip]);
+    }, [flip, size]);
 
     const onMouseover = useCallback(e => {
         if (!isClicking) return;
 
-        const {pageX, pageY} = e;
-        const x = pageX / 10 | 0;
-        const y = pageY / 10 | 0;
+        const {offsetX, offsetY} = e;
+        const x = offsetX / size | 0;
+        const y = offsetY / size | 0;
         const [X, Y] = xy;
         if (x !== X || y !== Y) {
             setXY([x, y]);
             flip(x, y);
         }
-    }, [flip, isClicking, xy]);
+    }, [flip, isClicking, size, xy]);
 
     const onMouseup = useCallback(() => {
         setIsClicking(false);
@@ -76,22 +77,21 @@ export const CanvasGrid = ({matrix, flip}) => {
             canvas.removeEventListener('mousedown', onMousedown);
             canvas.removeEventListener('mousemove', onMouseover);
             document.removeEventListener('mouseup', onMouseup);
-        }
-
-    })
+        };
+    }, [onMousedown, onMouseover, onMouseup]);
 
     useEffect(() => {
         const ctx = canvasRef.current.getContext('2d');
-
         matrix.forEach((row, i) => {
             row.forEach((alive, j) => {
                 if (alive) {
-                    ctx.fillRect((i * 10) + 1, (j * 10) + 1, 8, 8);
+                    ctx.fillRect((i * size) + 1, (j * size) + 1, size - 2, size - 2);
                 } else {
-                    ctx.clearRect((i * 10) + 1, (j * 10) + 1, 8, 8);
+                    ctx.clearRect((i * size) + 1, (j * size) + 1, size - 2, size - 2);
                 }
             })
         })
-    }, [matrix])
-    return <canvas ref={canvasRef} id="grid" width="500" height="500"></canvas>
+    }, [matrix, size]);
+
+    return <canvas ref={canvasRef} id="grid" width={size * 50 + 1} height={size * 50 + 1}></canvas>
 }

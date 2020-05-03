@@ -7,52 +7,93 @@ const initialMatrix = buildRandomMatrix(size);
 
 function App() {
   const [matrix, setMatrix] = useState(initialMatrix);
-  const [stepCount, setStepCount] = useState(0);
+  const [stepCount, setStepCount] = useState(1);
   const [stopped, setStopped] = useState(false);
+  const [dead, setDead] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (stopped) return;
-      const nextMatrix = buildNextMatrix(matrix);
-      setMatrix(nextMatrix);
-      setStepCount(stepCount + 1);
+        if (stopped || dead) return;
+        const [nextMatrix, isDead] = buildNextMatrix(matrix);
+        setMatrix(nextMatrix);
+        if (isDead) setDead(isDead);
+        setStepCount(stepCount + 1);
     }, 100);
 
     return () => clearInterval(interval);
-    });
+  });
 
-  const onConfigChange = ({ stopped, stepCount }) => {
-    setStopped(stopped);
-    setStepCount(stepCount);
-  };
+  const onConfigChange = useCallback(({ action }) => {
+      if (dead) setDead(false);
+
+      switch (action) {
+        case 'stop':
+            setStopped(true);
+            break;
+        case 'start':
+            setStopped(false);
+            break;
+        case 'restart':
+            setMatrix(buildRandomMatrix(size));
+            setStepCount(1);
+            break;
+        case 'clear':
+            setMatrix(buildEmptyMatrix(size));
+            setStepCount(1);
+            setDead(true);
+            break;
+        default:
+            break;
+      }
+  }, [dead]);
 
   const onFlip = useCallback((i, j) => {
-      setMatrix(buildNextMatrix(matrix, flip(i, j)));
+      const [m, isDead] = buildNextMatrix(matrix, flip(i, j))
+      setMatrix(m);
+      setDead(isDead);
   }, [matrix]);
 
   return (
-    <main className="w-screen h-screen">
-      <CanvasGrid matrix={matrix} flip={onFlip} />
-      <Config config={{ stepCount, stopped }} onChange={onConfigChange} />
+    <main className="p-4 w-screen h-screen grid grid-cols-2 gap-4 bg-gray-200">
+        <div className="">
+            <h1 className="inline-block px-4 mb-3 text-4xl bg-gray-100 shadow-md">
+                Conway's Game of Life
+            </h1>
+            <div className="bg-gray-100 shadow-md  ">
+                <Config  config={{ stepCount, stopped }} onChange={onConfigChange} />
+            </div>
+        </div>
+        <div className="flex flex-col justify-center items-center">
+            <div style={{minWidth: 750}} className="p-4 bg-gray-100 shadow-lg">
+                <CanvasGrid matrix={matrix} flip={onFlip} size={15} />
+            </div>
+        </div>
     </main>
   );
 }
 
 export default App;
 
-function buildRandomMatrix(size) {
-  const matrix = [];
-  for (let i = 0; i < size; i++) {
-    const row = [];
-    matrix.push(row);
+function buildMatrix (size, initCell) {
+    const matrix = [];
+    for (let i = 0; i < size; i++) {
+      const row = [];
+      matrix.push(row);
 
-    for (let j = 0; j < size; j++) {
-      const state = Math.random() > 0.66;
-      row.push(state);
+      for (let j = 0; j < size; j++) {
+        row.push(initCell(i, j));
+      }
     }
-  }
 
-  return matrix;
+    return matrix;
+}
+
+function buildEmptyMatrix (size) {
+    return buildMatrix(size, () => false);
+}
+
+function buildRandomMatrix (size) {
+    return buildMatrix(size, () => Math.random() > 0.66);
 }
 
 function flip (i, j) {
@@ -69,16 +110,18 @@ function buildNextMatrix(matrix, getCellState = nextCell) {
   const l = matrix.length;
   const l2 = matrix[0].length;
   const newMatrix = [];
+  let isDead = true;
   for (let i = 0; i < l; i++) {
     const row = [];
     newMatrix.push(row);
     for (let j = 0; j < l2; j++) {
       const state = getCellState(i, j, matrix);
+      if (state) isDead = false;
       row.push(state);
     }
   }
 
-  return newMatrix;
+  return [newMatrix, isDead];
 }
 
 function nextCell(i, j, matrix) {
@@ -93,8 +136,7 @@ function nextCell(i, j, matrix) {
   // return currentState ? (num === 2 || num === 3) : num === 3;
   const newState = currentState
     ? num === 2 || num === 3
-    : num === 3 || (num === 2 && Math.random() > 0.99);
-  // return Math.random() > .999 ? !newState : newState;
+    : num === 3; // || (num === 2 && Math.random() > 0.99);
   return newState;
 }
 
