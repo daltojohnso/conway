@@ -21,7 +21,7 @@ const gridlines = size => `<svg width="100%" height="100%" xmlns="http://www.w3.
     <rect width="100%" height="100%" fill="url(#smallGrid)" />
 </svg>`;
 
-export const CanvasGrid = ({matrix, flip, stop, size}) => {
+export const CanvasGrid = ({matrix, flip, stop, size, isDrawing}) => {
     const canvasRef = useRef(null);
     const [xy, setXY] = useState([-1, -1]);
     const [isClicking, setIsClicking] = useState(false);
@@ -68,6 +68,8 @@ export const CanvasGrid = ({matrix, flip, stop, size}) => {
     }, []);
 
     useEffect(() => {
+        if (!isDrawing) return;
+
         const canvas = canvasRef.current;
         canvas.addEventListener('mousedown', onMousedown);
         canvas.addEventListener('mousemove', onMouseover);
@@ -78,7 +80,7 @@ export const CanvasGrid = ({matrix, flip, stop, size}) => {
             canvas.removeEventListener('mousemove', onMouseover);
             document.removeEventListener('mouseup', onMouseup);
         };
-    }, [onMousedown, onMouseover, onMouseup]);
+    }, [isDrawing, onMousedown, onMouseover, onMouseup]);
 
     useEffect(() => {
         const ctx = canvasRef.current.getContext('2d');

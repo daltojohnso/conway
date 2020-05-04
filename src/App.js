@@ -9,6 +9,7 @@ function App() {
   const [matrix, setMatrix] = useState(initialMatrix);
   const [stepCount, setStepCount] = useState(1);
   const [stopped, setStopped] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(true);
   const [dead, setDead] = useState(false);
 
   useEffect(() => {
@@ -42,6 +43,12 @@ function App() {
             setStepCount(1);
             setDead(true);
             break;
+        case 'drawmode:on':
+            setIsDrawing(true);
+            break;
+        case 'drawmode:off':
+            setIsDrawing(false);
+            break;
         default:
             break;
       }
@@ -60,12 +67,12 @@ function App() {
                 Conway's Game of Life
             </h1>
             <div className="bg-gray-100 shadow-md  ">
-                <Config  config={{ stepCount, stopped }} onChange={onConfigChange} />
+                <Config  config={{ stepCount, stopped, isDrawing }} onChange={onConfigChange} />
             </div>
         </div>
         <div className="flex flex-col justify-center items-center">
             <div style={{minWidth: 750}} className="p-4 bg-gray-100 shadow-lg">
-                <CanvasGrid matrix={matrix} flip={onFlip} size={15} />
+                <CanvasGrid matrix={matrix} flip={onFlip} size={15} isDrawing={isDrawing} />
             </div>
         </div>
     </main>
