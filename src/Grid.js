@@ -1,17 +1,6 @@
 import React, {useRef, useEffect, useState, useCallback} from 'react';
-import Cell from './Cell';
 
-export const DivGrid = ({matrix}) => {
-  const grid = matrix.map((row, i) => {
-    return (
-      <div className="flex flex-row" key={i}>
-        {row.map((alive, j) => <Cell alive={alive} key={j} />)}
-      </div>
-    )
-  });
-  return <div className="flex flex-col">{grid}</div>;
-};
-
+//https://useworker.js.org/docs/installation/
 const gridlines = size => `<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
      <defs>
         <pattern id="smallGrid" width="${size}" height="${size}" patternUnits="userSpaceOnUse">
@@ -21,8 +10,10 @@ const gridlines = size => `<svg width="100%" height="100%" xmlns="http://www.w3.
     <rect width="100%" height="100%" fill="url(#smallGrid)" />
 </svg>`;
 
-export const CanvasGrid = ({matrix, flip, stop, size, isDrawing}) => {
+const CanvasGrid = ({matrix, onClick, stop, size, isDrawing, pattern = [[1, 1], [1, 1]]}) => {
+    const width = size * 50 + 1;
     const canvasRef = useRef(null);
+    const hoverRef = useRef(null);
     const [xy, setXY] = useState([-1, -1]);
     const [isClicking, setIsClicking] = useState(false);
 
@@ -41,46 +32,54 @@ export const CanvasGrid = ({matrix, flip, stop, size, isDrawing}) => {
 
     const onMousedown = useCallback(e => {
         setIsClicking(true);
-        console.log(e);
         const {offsetX, offsetY} = e;
         const x = offsetX / size | 0;
         const y = offsetY / size | 0;
         setXY([x, y]);
-        flip(x, y);
-    }, [flip, size]);
+        if (pattern) onClick([x, y], pattern);
+    }, [onClick, pattern, size]);
 
     const onMouseover = useCallback(e => {
-        if (!isClicking) return;
-
+        const hoverCanvas = hoverRef.current;
         const {offsetX, offsetY} = e;
         const x = offsetX / size | 0;
         const y = offsetY / size | 0;
         const [X, Y] = xy;
         if (x !== X || y !== Y) {
+            clearHover(hoverCanvas, xy, width);
+            // drawHover(hoverCanvas, [x, y], size);
             setXY([x, y]);
-            flip(x, y);
+            if (pattern) drawPatternHover(hoverCanvas, matrix, [x, y], pattern, size);
+            if (isClicking && pattern) onClick([x, y], pattern);
         }
-    }, [flip, isClicking, size, xy]);
+    }, [onClick, isClicking, matrix, pattern, size, width, xy]);
 
     const onMouseup = useCallback(() => {
         setIsClicking(false);
         setXY([-1, -1]);
     }, []);
 
+    const onMouseout = useCallback(() => {
+        const canvas = hoverRef.current;
+        clearHover(canvas, xy, width);
+    }, [width, xy]);
+
     useEffect(() => {
         if (!isDrawing) return;
 
-        const canvas = canvasRef.current;
+        const canvas = hoverRef.current;
         canvas.addEventListener('mousedown', onMousedown);
         canvas.addEventListener('mousemove', onMouseover);
+        canvas.addEventListener('mouseout', onMouseout);
         document.addEventListener('mouseup', onMouseup);
 
         return () => {
             canvas.removeEventListener('mousedown', onMousedown);
             canvas.removeEventListener('mousemove', onMouseover);
+            canvas.removeEventListener('mouseout', onMouseout);
             document.removeEventListener('mouseup', onMouseup);
         };
-    }, [isDrawing, onMousedown, onMouseover, onMouseup]);
+    }, [isDrawing, onMousedown, onMouseout, onMouseover, onMouseup]);
 
     useEffect(() => {
         const ctx = canvasRef.current.getContext('2d');
@@ -95,5 +94,31 @@ export const CanvasGrid = ({matrix, flip, stop, size, isDrawing}) => {
         })
     }, [matrix, size]);
 
-    return <canvas ref={canvasRef} id="grid" width={size * 50 + 1} height={size * 50 + 1}></canvas>
+    return <div className="relative">
+        <canvas ref={canvasRef} id="grid" width={width} height={width} />
+        <canvas ref={hoverRef} id="hover" className="absolute top-0" width={width} height={width} />
+    </div>;
 }
+
+function clearHover (canvas, [x, y], width) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, width, width);
+}
+
+function drawPatternHover (canvas, matrix, [x, y], pattern, size) {
+    const ctx = canvas.getContext('2d');
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = 'red';
+    pattern.forEach((row, i) => {
+        row.forEach((state, j) => {
+            const xi = x + i;
+            const yj = y + j;
+            if (matrix[xi] != null && matrix[xi][yj] != null) {
+                ctx.fillRect(xi * size, yj * size, size, size);
+                if (state) ctx.fillRect(xi * size, yj * size, size, size);
+            }
+        })
+    })
+}
+
+export default CanvasGrid;

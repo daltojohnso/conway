@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback} from "react";
 import Config from "./Config";
-import { CanvasGrid } from "./Grid";
+import CanvasGrid from "./Grid";
+import Catalogue from './Catalogue';
 
 let size = 50;
 const initialMatrix = buildRandomMatrix(size);
@@ -11,6 +12,7 @@ function App() {
   const [stopped, setStopped] = useState(false);
   const [isDrawing, setIsDrawing] = useState(true);
   const [dead, setDead] = useState(false);
+  const [pattern, setPattern] = useState([[1]]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -53,12 +55,15 @@ function App() {
             break;
       }
   }, [dead]);
-
-  const onFlip = useCallback((i, j) => {
-      const [m, isDead] = buildNextMatrix(matrix, flip(i, j))
+  const onGridClick = useCallback((xy, pattern) => {
+      const [m, isDead] = buildNextMatrix(matrix, buildPattern(xy, pattern))
       setMatrix(m);
       setDead(isDead);
   }, [matrix]);
+
+  const onCatalogueClick = useCallback(({pattern}) => {
+      setPattern(pattern);
+  }, []);
 
   return (
     <main className="p-4 w-screen h-screen grid grid-cols-2 gap-4 bg-gray-200">
@@ -66,14 +71,22 @@ function App() {
             <h1 className="inline-block px-4 mb-3 text-4xl bg-gray-100 shadow-md">
                 Conway's Game of Life
             </h1>
-            <div className="bg-gray-100 shadow-md  ">
-                <Config  config={{ stepCount, stopped, isDrawing }} onChange={onConfigChange} />
+            <div className="bg-gray-100 shadow-md mb-3">
+                <Config config={{ stepCount, stopped, isDrawing }} onChange={onConfigChange} />
+            </div>
+            <div className="bg-gray-100 shadow-md">
+                <Catalogue onClick={onCatalogueClick} />
             </div>
         </div>
         <div className="flex flex-col justify-center items-center">
-            <div style={{minWidth: 750}} className="p-4 bg-gray-100 shadow-lg">
-                <CanvasGrid matrix={matrix} flip={onFlip} size={15} isDrawing={isDrawing} />
-            </div>
+             <div style={{minWidth: 750}} className="p-4 bg-gray-100 shadow-lg">
+                  <CanvasGrid
+                      matrix={matrix}
+                      pattern={pattern}
+                      onClick={onGridClick}
+                      size={15}
+                      isDrawing={isDrawing} />
+             </div>
         </div>
     </main>
   );
@@ -110,6 +123,24 @@ function flip (i, j) {
         } else {
              return matrix[x][y];
         }
+    }
+}
+
+function buildPattern ([i, j], pattern) {
+    return (x, y, matrix) => {
+        if (i === x && j === y) {
+            pattern.forEach((row, iP) => {
+                const ix = iP + x;
+                row.forEach((state, jP) => {
+                    const jy = jP + y;
+                    if (matrix[ix] != null && matrix[jy] != null) {
+                        matrix[ix][jy] = state;
+                    }
+                });
+            });
+        }
+
+        return matrix[x][y];
     }
 }
 

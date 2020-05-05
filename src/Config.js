@@ -28,7 +28,7 @@ const Config = ({
 
     return (
         <div className="grid grid-cols-1 grid-rows-2 gap-4 p-4">
-            <div className="inline-flex">
+            <div className="inline-flex flex-wrap">
                 <button onClick={onStopStart} className="mr-2 inline-flex justify-center items-center text-2xl bg-transparent hover:bg-gray-300 py-1 px-2 border border-gray-600 hover:border-transparent rounded">
                     {stopped ? [
                         <FiPlayCircle className="mr-2 text-3xl text-green-600" key="FiPlayCircle"/>,
