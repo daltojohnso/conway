@@ -15,11 +15,12 @@ function App() {
   const [isDrawing, setIsDrawing] = useState(true);
   const [dead, setDead] = useState(false);
   const [pattern, setPattern] = useState([[1]]);
+  const [borders, setBorders] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
         if (stopped || dead) return;
-        const [nextMatrix, isDead] = buildNextMatrix(matrix);
+        const [nextMatrix, isDead] = buildNextMatrix(matrix, nextCell, borders);
         setMatrix(nextMatrix);
         if (isDead) setDead(isDead);
         setStepCount(stepCount + 1);
@@ -53,15 +54,18 @@ function App() {
         case 'drawmode:off':
             setIsDrawing(false);
             break;
+        case 'borders:toggle':
+            setBorders(!borders);
+            break;
         default:
             break;
       }
-  }, [dead]);
+  }, [borders, dead]);
   const onGridClick = useCallback((xy, pattern) => {
-      const [m, isDead] = buildNextMatrix(matrix, buildPattern(xy, pattern))
+      const [m, isDead] = buildNextMatrix(matrix, buildPattern(xy, pattern), borders)
       setMatrix(m);
       setDead(isDead);
-  }, [matrix]);
+  }, [borders, matrix]);
 
   const onCatalogueClick = useCallback(({pattern}) => {
       setPattern(pattern);
@@ -74,7 +78,7 @@ function App() {
                 Conway's Game of Life
             </h1>
             <div className="bg-gray-100 shadow-md mb-3">
-                <Config config={{ stepCount, stopped, isDrawing }} onChange={onConfigChange} />
+                <Config config={{ stepCount, stopped, isDrawing, borders }} onChange={onConfigChange} />
             </div>
             <div className="bg-gray-100 shadow-md">
                 <Catalogue onClick={onCatalogueClick} />
@@ -146,7 +150,7 @@ function buildPattern ([i, j], pattern) {
     }
 }
 
-function buildNextMatrix(matrix, getCellState = nextCell) {
+function buildNextMatrix(matrix, getCellState = nextCell, borders) {
   const l = matrix.length;
   const l2 = matrix[0].length;
   const newMatrix = [];
@@ -155,7 +159,7 @@ function buildNextMatrix(matrix, getCellState = nextCell) {
     const row = [];
     newMatrix.push(row);
     for (let j = 0; j < l2; j++) {
-      const state = getCellState(i, j, matrix);
+      const state = getCellState(i, j, matrix, borders);
       if (state) isDead = false;
       row.push(state);
     }
@@ -164,9 +168,9 @@ function buildNextMatrix(matrix, getCellState = nextCell) {
   return [newMatrix, isDead];
 }
 
-function nextCell(i, j, matrix) {
+function nextCell(i, j, matrix, borders) {
   const currentState = matrix[i][j];
-  const num = countNeighbors(i, j, matrix);
+  const num = countNeighbors(i, j, matrix, borders);
 
   // Any live cell with fewer than two live neighbours dies, as if by underpopulation.
   // Any live cell with two or three live neighbours lives on to the next generation.
@@ -180,11 +184,27 @@ function nextCell(i, j, matrix) {
   return newState;
 }
 
-function countNeighbors(i, j, matrix) {
+function countNeighbors(i, j, matrix, borders) {
   const l = matrix.length;
   const l2 = matrix[i].length;
-  const yIndices = [i - 1, i, i + 1].filter(num => num >= 0 && num < l);
-  const xIndices = [j - 1, j, j + 1].filter(num => num >= 0 && num < l2);
+  let yIndices;
+  let xIndices;
+  if (borders) {
+      yIndices = [i - 1, i, i + 1].filter(num => num >= 0 && num < l);
+      xIndices = [j - 1, j, j + 1].filter(num => num >= 0 && num < l2);
+  } else {
+      yIndices = [
+          i === 0 ? l - 1 : i - 1,
+          i,
+          (i + 1) % l
+      ];
+      xIndices = [
+          j === 0 ? l2 - 1 : j - 1,
+          j,
+          (j + 1) % l2
+      ];
+  }
+
   let num = 0;
 
   for (let ii = 0; ii < yIndices.length; ii++) {
