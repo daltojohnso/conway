@@ -3,6 +3,8 @@ import Config from "./Config";
 import CanvasGrid from "./Grid";
 import Catalogue from './Catalogue';
 
+// use a state chart for defining more freely the living/dead thing?
+
 let size = 50;
 const initialMatrix = buildRandomMatrix(size);
 
