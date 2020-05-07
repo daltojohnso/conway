@@ -1,75 +1,98 @@
-import React, { useState, useEffect, useCallback} from "react";
-import Config from "./Config";
-import CanvasGrid from "./Grid";
+import React, { useState, useEffect, useCallback} from 'react';
+import Config from './Config';
+import CanvasGrid from './Grid';
 import Catalogue from './Catalogue';
-
-// use a state chart for defining more freely the living/dead thing?
+import {buildMatrix, REDUCER} from './utils';
 
 let size = 50;
-const initialMatrix = buildRandomMatrix(size);
+const threshold = 0.66;
+const initialMatrix = buildMatrix(REDUCER.random({size, threshold}));
 
-function App() {
-  const [matrix, setMatrix] = useState(initialMatrix);
-  const [stepCount, setStepCount] = useState(1);
-  const [stopped, setStopped] = useState(false);
-  const [isDrawing, setIsDrawing] = useState(true);
-  const [dead, setDead] = useState(false);
-  const [pattern, setPattern] = useState([[1]]);
-  const [borders, setBorders] = useState(false);
+function App () {
+    const [matrix, setMatrix] = useState(initialMatrix);
+    const [config, setConfig] = useState({
+        stepCount: 1,
+        stopped: false,
+        isDrawing: true,
+        dead: false,
+        pattern: [[1]],
+        borders: false,
+        size: 15,
+        delay: 100
+    });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-        if (stopped || dead) return;
-        const [nextMatrix, isDead] = buildNextMatrix(matrix, nextCell, borders);
-        setMatrix(nextMatrix);
-        if (isDead) setDead(isDead);
-        setStepCount(stepCount + 1);
-    }, 100);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const {stopped, dead, borders, stepCount} = config;
+            if (stopped || dead) return;
+            const [
+                nextMatrix,
+                isDead
+            ] = buildMatrix(REDUCER.stepwise({matrix, borders}));
+            setMatrix(nextMatrix);
+            setConfig({
+                ...config,
+                dead: isDead,
+                stepCount: stepCount + 1
+            })
+        }, config.delay);
 
     return () => clearInterval(interval);
   });
 
   const onConfigChange = useCallback(({ action }) => {
-      if (dead) setDead(false);
-
+      let c = {dead: false};
       switch (action) {
         case 'stop':
-            setStopped(true);
+            c.stopped = true;
             break;
         case 'start':
-            setStopped(false);
+            c.stopped = false;
             break;
         case 'restart':
-            setMatrix(buildRandomMatrix(size));
-            setStepCount(1);
+            setMatrix(buildMatrix(REDUCER.random({size, threshold})));
+            c.stepCount = 1;
             break;
         case 'clear':
-            setMatrix(buildEmptyMatrix(size));
-            setStepCount(1);
-            setDead(true);
+            setMatrix(buildMatrix(REDUCER.empty({size})));
+            c.stepCount = 1;
+            c.dead = true;
             break;
-        case 'drawmode:on':
-            setIsDrawing(true);
-            break;
-        case 'drawmode:off':
-            setIsDrawing(false);
+        case 'draw:toggle':
+            c.isDrawing = !config.isDrawing;
             break;
         case 'borders:toggle':
-            setBorders(!borders);
+            c.borders = !config.borders;
             break;
         default:
             break;
       }
-  }, [borders, dead]);
-  const onGridClick = useCallback((xy, pattern) => {
-      const [m, isDead] = buildNextMatrix(matrix, buildPattern(xy, pattern), borders)
+
+      setConfig({
+          ...config,
+          ...c
+      });
+  }, [config]);
+
+  const onGridClick = useCallback((location, pattern) => {
+      const [m, isDead] = buildMatrix(REDUCER.edit({
+          location,
+          pattern,
+          matrix
+      }));
       setMatrix(m);
-      setDead(isDead);
-  }, [borders, matrix]);
+      setConfig({
+          ...config,
+          dead: isDead
+      });
+  }, [config, matrix]);
 
   const onCatalogueClick = useCallback(({pattern}) => {
-      setPattern(pattern);
-  }, []);
+      setConfig({
+          ...config,
+          pattern
+      });
+  }, [config]);
 
   return (
     <main className="p-4 w-screen h-screen grid grid-cols-2 gap-4 bg-gray-200">
@@ -78,7 +101,7 @@ function App() {
                 Conway's Game of Life
             </h1>
             <div className="bg-gray-100 shadow-md mb-3">
-                <Config config={{ stepCount, stopped, isDrawing, borders }} onChange={onConfigChange} />
+                <Config config={config} onChange={onConfigChange} />
             </div>
             <div className="bg-gray-100 shadow-md">
                 <Catalogue onClick={onCatalogueClick} />
@@ -88,10 +111,8 @@ function App() {
              <div style={{minWidth: 750}} className="p-4 bg-gray-100 shadow-lg">
                   <CanvasGrid
                       matrix={matrix}
-                      pattern={pattern}
-                      onClick={onGridClick}
-                      size={15}
-                      isDrawing={isDrawing} />
+                      config={config}
+                      onClick={onGridClick} />
              </div>
         </div>
     </main>
@@ -99,125 +120,3 @@ function App() {
 }
 
 export default App;
-
-function buildMatrix (size, initCell) {
-    const matrix = [];
-    for (let i = 0; i < size; i++) {
-      const row = [];
-      matrix.push(row);
-
-      for (let j = 0; j < size; j++) {
-        row.push(initCell(i, j));
-      }
-    }
-
-    return matrix;
-}
-
-function buildEmptyMatrix (size) {
-    return buildMatrix(size, () => false);
-}
-
-function buildRandomMatrix (size) {
-    return buildMatrix(size, () => Math.random() > 0.66);
-}
-
-function flip (i, j) {
-    return (x, y, matrix) => {
-        if (i === x && j === y) {
-            return !matrix[x][y];
-        } else {
-             return matrix[x][y];
-        }
-    }
-}
-
-function buildPattern ([i, j], pattern) {
-    return (x, y, matrix) => {
-        if (i === x && j === y) {
-            pattern.forEach((row, iP) => {
-                const ix = iP + x;
-                row.forEach((state, jP) => {
-                    const jy = jP + y;
-                    if (matrix[ix] != null && matrix[jy] != null) {
-                        matrix[ix][jy] = state;
-                    }
-                });
-            });
-        }
-
-        return matrix[x][y];
-    }
-}
-
-function buildNextMatrix(matrix, getCellState = nextCell, borders) {
-  const l = matrix.length;
-  const l2 = matrix[0].length;
-  const newMatrix = [];
-  let isDead = true;
-  for (let i = 0; i < l; i++) {
-    const row = [];
-    newMatrix.push(row);
-    for (let j = 0; j < l2; j++) {
-      const state = getCellState(i, j, matrix, borders);
-      if (state) isDead = false;
-      row.push(state);
-    }
-  }
-
-  return [newMatrix, isDead];
-}
-
-function nextCell(i, j, matrix, borders) {
-  const currentState = matrix[i][j];
-  const num = countNeighbors(i, j, matrix, borders);
-
-  // Any live cell with fewer than two live neighbours dies, as if by underpopulation.
-  // Any live cell with two or three live neighbours lives on to the next generation.
-  // Any live cell with more than three live neighbours dies, as if by overpopulation.
-  // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-
-  // return currentState ? (num === 2 || num === 3) : num === 3;
-  const newState = currentState
-    ? num === 2 || num === 3
-    : num === 3; // || (num === 2 && Math.random() > 0.99);
-  return newState;
-}
-
-function countNeighbors(i, j, matrix, borders) {
-  const l = matrix.length;
-  const l2 = matrix[i].length;
-  let yIndices;
-  let xIndices;
-  if (borders) {
-      yIndices = [i - 1, i, i + 1].filter(num => num >= 0 && num < l);
-      xIndices = [j - 1, j, j + 1].filter(num => num >= 0 && num < l2);
-  } else {
-      yIndices = [
-          i === 0 ? l - 1 : i - 1,
-          i,
-          (i + 1) % l
-      ];
-      xIndices = [
-          j === 0 ? l2 - 1 : j - 1,
-          j,
-          (j + 1) % l2
-      ];
-  }
-
-  let num = 0;
-
-  for (let ii = 0; ii < yIndices.length; ii++) {
-    for (let jj = 0; jj < xIndices.length; jj++) {
-      const y = yIndices[ii];
-      const x = xIndices[jj];
-      if (y === i && x === j) continue;
-
-      if (matrix[y][x]) {
-        num += 1;
-      }
-    }
-  }
-
-  return num;
-}

@@ -24,8 +24,8 @@ const Config = ({
     }, [onChange]);
 
     const onDraw = useCallback(() => {
-        onChange({action: isDrawing ? 'drawmode:off' : 'drawmode:on'});
-    }, [isDrawing, onChange]);
+        onChange({ action: 'draw:toggle' });
+    }, [onChange]);
 
     const onBorderToggle = useCallback(() => {
         onChange({ action: 'borders:toggle' });
@@ -55,7 +55,7 @@ const Config = ({
                     <FiEdit2 className="mr-2 text-3xl" />
                     <span>{isDrawing ? 'Draw: On' : 'Draw: Off'}</span>
                 </button>
-                <button onClick={onBorderToggle} className={classnames('mr-2 inline-flex justify-center items-center text-2xl bg-transparent hover:bg-gray-400 py-1 px-2 border border-gray-600 hover:border-transparent rounded', {'bg-gray-300 border-none': isDrawing})}>
+                <button onClick={onBorderToggle} className={classnames('mr-2 inline-flex justify-center items-center text-2xl bg-transparent hover:bg-gray-400 py-1 px-2 border border-gray-600 hover:border-transparent rounded', {'bg-gray-300 border-none': borders})}>
                     <FiGlobe className="mr-2 text-3xl" />
                     <span>{borders ? 'Borders: On' : 'Borders: Off'}</span>
                 </button>

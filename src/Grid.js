@@ -10,7 +10,11 @@ const gridlines = size => `<svg width="100%" height="100%" xmlns="http://www.w3.
     <rect width="100%" height="100%" fill="url(#smallGrid)" />
 </svg>`;
 
-const CanvasGrid = ({matrix, onClick, stop, size, isDrawing, pattern = [[1, 1], [1, 1]]}) => {
+const CanvasGrid = ({
+    matrix,
+    onClick,
+    config: {stop, size, isDrawing, pattern
+}}) => {
     const width = size * 50 + 1;
     const canvasRef = useRef(null);
     const hoverRef = useRef(null);
