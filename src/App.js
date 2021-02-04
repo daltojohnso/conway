@@ -6,6 +6,7 @@ import {
   NavLink,
 } from "react-router-dom";
 import HomePage from "./components/HomePage";
+import FriendsPage from "./components/FriendsPage";
 
 export default function App() {
   return (
@@ -37,15 +38,18 @@ export default function App() {
                 exact
                 className="p-1 m-1"
                 activeClassName="bg-white"
-                to="/users"
+                to="/friends"
               >
-                Users
+                Friends
               </NavLink>
             </li>
           </ul>
         </nav>
 
         <Switch>
+          <Route path="/friends">
+            <FriendsPage />
+          </Route>
           <Route path="/">
             <HomePage />
           </Route>
