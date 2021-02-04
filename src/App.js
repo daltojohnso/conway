@@ -11,7 +11,7 @@ export default function App() {
   return (
     <Router>
       <div>
-        <nav className="pt-4 pl-4 flex items-center gap-1">
+        <nav className="py-4 pl-4 flex items-center gap-1">
           <h1 className="inline-block px-4 text-4xl bg-gray-100 shadow-md col-start-1">
             <a
               href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"

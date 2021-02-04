@@ -146,7 +146,7 @@ class AppNoHooks extends React.Component {
     const { config, matrix } = this.state;
 
     return (
-      <main className="p-4 w-screen h-screen flex flex-col flex-wrap gap-2 bg-gray-400 items-start justify-start">
+      <main className="p-4 pt-0 w-screen flex flex-col gap-2 bg-gray-400 items-start justify-start">
         <div className="bg-gray-100 shadow-md flex items-start">
           <div className="">
             <Config config={config} onChange={this.onConfigChange} />
