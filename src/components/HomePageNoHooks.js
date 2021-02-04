@@ -3,7 +3,7 @@ import Config from "./Config";
 import CanvasGrid from "./Grid";
 import Catalogue from "./Catalogue";
 
-import { buildMatrix, REDUCER } from "./utils";
+import { buildMatrix, REDUCER } from "../utils";
 let size = 50;
 const threshold = 0.66;
 const initialMatrix = buildMatrix(REDUCER.random({ size, threshold }));
