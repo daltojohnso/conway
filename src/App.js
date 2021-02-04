@@ -1,301 +1,56 @@
-import React, { useState, useCallback } from "react";
-import Config from "./Config";
-import CanvasGrid from "./Grid";
-import Catalogue from "./Catalogue";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  NavLink,
+} from "react-router-dom";
+import HomePage from "./HomePage";
 
-import { buildMatrix, REDUCER } from "./utils";
-let size = 50;
-const threshold = 0.66;
-const initialMatrix = buildMatrix(REDUCER.random({ size, threshold }));
-
-function App() {
-  const [matrix, setMatrix] = useState(initialMatrix);
-  const [config, setConfig] = useState({
-    stepCount: 1,
-    stopped: true,
-    isDrawing: true,
-    dead: false,
-    pattern: [[1]],
-    borders: false,
-    size: 15,
-    delay: 100,
-  });
-
-  const mergeConfig = useCallback(
-    (partialConfig) => setConfig({ ...config, ...partialConfig }),
-    [config]
-  );
-
-  function setNextStepOfGame(matrix, config) {
-    const { borders, stepCount } = config;
-    const [nextMatrix, isDead] = buildMatrix(
-      REDUCER.stepwise({ matrix, borders })
-    );
-    setMatrix(nextMatrix);
-    setConfig({
-      ...config,
-      dead: isDead,
-      stepCount: stepCount + 1,
-    });
-  }
-
-  const onConfigChange = useCallback(
-    ({ action }) => {
-      switch (action) {
-        case "stop":
-          mergeConfig({
-            stopped: true,
-          });
-          break;
-        case "start":
-          mergeConfig({
-            stopped: false,
-          });
-          break;
-        case "restart":
-          setMatrix(buildMatrix(REDUCER.random({ size, threshold })));
-          mergeConfig({
-            stepCount: 1,
-            dead: false,
-          });
-          break;
-        case "clear":
-          setMatrix(buildMatrix(REDUCER.empty({ size })));
-          mergeConfig({
-            stepCount: 1,
-            dead: true,
-            stopped: true,
-          });
-          break;
-        case "draw:toggle":
-          mergeConfig({
-            isDrawing: !config.isDrawing,
-          });
-          break;
-        case "borders:toggle":
-          mergeConfig({
-            borders: !config.borders,
-          });
-          break;
-        default:
-          break;
-      }
-    },
-    [config, mergeConfig]
-  );
-
-  const onGridClick = useCallback(
-    (location, pattern) => {
-      const [m, isDead] = buildMatrix(
-        REDUCER.edit({
-          location,
-          pattern,
-          matrix,
-        })
-      );
-      setMatrix(m);
-      setConfig({
-        ...config,
-        dead: isDead,
-      });
-    },
-    [config, matrix]
-  );
-
-  const onCatalogueClick = useCallback(
-    ({ pattern }) => {
-      setConfig({
-        ...config,
-        pattern,
-      });
-    },
-    [config]
-  );
-
+export default function App() {
   return (
-    <main className="p-4 w-screen h-screen flex flex-col flex-wrap gap-2 bg-gray-400 items-start justify-start">
-      <h1 className="inline-block px-4 text-4xl bg-gray-100 shadow-md col-start-1">
-        <a
-          href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Conway's Game of Life
-        </a>
-      </h1>
-      <div className="bg-gray-100 shadow-md">
-        <div className="inline-block col-start-2">
-          <Config config={config} onChange={onConfigChange} />
-        </div>
-        <div className="inline-block">
-          <Catalogue onClick={onCatalogueClick} />
-        </div>
+    <Router>
+      <div>
+        <nav className="pt-4 pl-4 flex items-center gap-1">
+          <h1 className="inline-block px-4 text-4xl bg-gray-100 shadow-md col-start-1">
+            <a
+              href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Conway's Game of Life
+            </a>
+          </h1>
+          <ul className="inline-flex">
+            <li>
+              <NavLink
+                exact
+                className="p-1 m-1"
+                activeClassName="bg-white"
+                to="/"
+              >
+                Home
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                exact
+                className="p-1 m-1"
+                activeClassName="bg-white"
+                to="/users"
+              >
+                Users
+              </NavLink>
+            </li>
+          </ul>
+        </nav>
+
+        <Switch>
+          <Route path="/">
+            <HomePage />
+          </Route>
+        </Switch>
       </div>
-      <div className="flex flex-col justify-center items-center">
-        <div style={{ minWidth: 750 }} className="p-4 bg-gray-100 shadow-lg">
-          <CanvasGrid matrix={matrix} config={config} onClick={onGridClick} />
-        </div>
-      </div>
-    </main>
+    </Router>
   );
-}
-
-export default App;
-
-export class AppNoHooks extends React.Component {
-  constructor() {
-    super();
-
-    this.state = {
-      matrix: initialMatrix,
-      config: {
-        stepCount: 1,
-        stopped: true,
-        isDrawing: true,
-        dead: false,
-        pattern: [[1]],
-        borders: false,
-        size: 15,
-        delay: 100,
-      },
-    };
-
-    this.onConfigChange = this.onConfigChange.bind(this);
-    this.onCatalogueItemClick = this.onCatalogueItemClick.bind(this);
-    this.onGridClick = this.onGridClick.bind(this);
-  }
-
-  setNextStepOfGame(matrix, config) {
-    const { borders, stepCount } = config;
-    const [nextMatrix, isDead] = buildMatrix(
-      REDUCER.stepwise({ matrix, borders })
-    );
-
-    this.setState({
-      matrix: nextMatrix,
-      config: {
-        ...this.state.config,
-        dead: isDead,
-        stepCount: stepCount + 1,
-      },
-    });
-  }
-
-  mergeConfig(partialConfig) {
-    this.setState({
-      config: {
-        ...this.state.config,
-        ...partialConfig,
-      },
-    });
-  }
-
-  onConfigChange(action) {
-    const { config } = this.state;
-    switch (action) {
-      case "stop":
-        this.mergeConfig({
-          stopped: true,
-        });
-        break;
-      case "start":
-        this.mergeConfig({
-          stopped: false,
-        });
-        break;
-      case "restart":
-        this.setState({
-          matrix: buildMatrix(REDUCER.random({ size, threshold })),
-          config: {
-            ...config,
-            stepCount: 1,
-            dead: false,
-          },
-        });
-        break;
-      case "clear":
-        this.setState({
-          matrix: buildMatrix(REDUCER.empty({ size })),
-          config: {
-            ...config,
-            stepCount: 1,
-            dead: true,
-            stopped: true,
-          },
-        });
-        break;
-      case "draw:toggle":
-        this.mergeConfig({
-          isDrawing: !config.isDrawing,
-        });
-        break;
-      case "borders:toggle":
-        this.mergeConfig({
-          borders: !config.borders,
-        });
-        break;
-      default:
-        break;
-    }
-  }
-
-  onCatalogueItemClick(pattern) {
-    this.mergeConfig({
-      pattern,
-    });
-  }
-
-  onGridClick(location, pattern) {
-    const { matrix, config } = this.state;
-    const [m, isDead] = buildMatrix(
-      REDUCER.edit({
-        location,
-        pattern,
-        matrix,
-      })
-    );
-
-    this.setState({
-      matrix: m,
-      config: {
-        ...config,
-        dead: isDead,
-      },
-    });
-  }
-
-  render() {
-    const { config, matrix } = this.state;
-
-    return (
-      <main className="p-4 w-screen h-screen flex flex-col flex-wrap gap-2 bg-gray-400 items-start justify-start">
-        <h1 className="inline-block px-4 text-4xl bg-gray-100 shadow-md col-start-1">
-          <a
-            href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Conway's Game of Life
-          </a>
-        </h1>
-        <div className="bg-gray-100 shadow-md">
-          <div className="inline-block col-start-2">
-            <Config config={config} onChange={this.onConfigChange} />
-          </div>
-          <div className="inline-block">
-            <Catalogue onClick={this.onCatalogueClick} />
-          </div>
-        </div>
-        <div className="flex flex-col justify-center items-center">
-          <div style={{ minWidth: 750 }} className="p-4 bg-gray-100 shadow-lg">
-            <CanvasGrid
-              matrix={matrix}
-              config={config}
-              onClick={this.onGridClick}
-            />
-          </div>
-        </div>
-      </main>
-    );
-  }
 }

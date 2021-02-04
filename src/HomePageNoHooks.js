@@ -147,20 +147,11 @@ class AppNoHooks extends React.Component {
 
     return (
       <main className="p-4 w-screen h-screen flex flex-col flex-wrap gap-2 bg-gray-400 items-start justify-start">
-        <h1 className="inline-block px-4 text-4xl bg-gray-100 shadow-md col-start-1">
-          <a
-            href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Conway's Game of Life
-          </a>
-        </h1>
-        <div className="bg-gray-100 shadow-md">
-          <div className="inline-block col-start-2">
+        <div className="bg-gray-100 shadow-md flex items-start">
+          <div className="">
             <Config config={config} onChange={this.onConfigChange} />
           </div>
-          <div className="inline-block">
+          <div className="">
             <Catalogue onClick={this.onCatalogueClick} />
           </div>
         </div>

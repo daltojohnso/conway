@@ -15,7 +15,7 @@ const Config = ({
   onChange,
 }) => {
   return (
-    <div className="grid grid-cols-1 grid-rows-2 gap-2 p-4">
+    <div className="grid grid-cols-1 grid-rows-2 gap-2 p-4 items-start">
       <div className="grid grid-cols-3 gap-1 flex-wrap">
         <button
           onClick={() => onChange({ action: stopped ? "start" : "stop" })}
