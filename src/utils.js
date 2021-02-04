@@ -129,16 +129,3 @@ function countNeighbors(i, j, matrix, borders) {
 
   return num;
 }
-
-export function countLivingCells(matrix) {
-  let num = 0;
-  const l = matrix.length;
-  const l2 = matrix[0].length;
-  for (let i = 0; i < l; i++) {
-    for (let j = 0; j < l2; j++) {
-      if (matrix[i][j] === 1) num += 1;
-    }
-  }
-
-  return num;
-}
