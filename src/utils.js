@@ -48,16 +48,6 @@ function buildRandomMatrix({ size, threshold }) {
   return instantiateMatrix(size, () => Math.random() > threshold);
 }
 
-// function flip (i, j) {
-//     return (x, y, matrix) => {
-//         if (i === x && j === y) {
-//             return !matrix[x][y];
-//         } else {
-//              return matrix[x][y];
-//         }
-//     }
-// }
-
 function addPatternToLocation({ location: [i, j], pattern }) {
   return (x, y, matrix) => {
     if (i === x && j === y) {
@@ -134,6 +124,19 @@ function countNeighbors(i, j, matrix, borders) {
       if (matrix[y][x]) {
         num += 1;
       }
+    }
+  }
+
+  return num;
+}
+
+export function countLivingCells(matrix) {
+  let num = 0;
+  const l = matrix.length;
+  const l2 = matrix[0].length;
+  for (let i = 0; i < l; i++) {
+    for (let j = 0; j < l2; j++) {
+      if (matrix[i][j] === 1) num += 1;
     }
   }
 

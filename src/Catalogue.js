@@ -78,7 +78,7 @@ const Catalogue = ({ onClick }) => {
           data-card="1"
           className={classnames(
             { "bg-gray-300": selected === 1 },
-            "relative h-48 w-32 m-1 cursor-pointer hover:bg-gray-400 hover:border-0 flex flex-col justify-around items-center w-24 h-20 border border-gray-300"
+            "relative h-32 w-32 m-1 cursor-pointer hover:bg-gray-400 hover:border-0 flex flex-col justify-around items-center w-24 h-20 border border-gray-300"
           )}
         >
           <div className="flex flex-col items-center">
@@ -116,7 +116,7 @@ const Catalogue = ({ onClick }) => {
           data-card="2"
           className={classnames(
             { "bg-gray-300": selected === 2 },
-            "relative h-48 w-32 m-1 cursor-pointer hover:bg-gray-400 hover:border-0 flex flex-col justify-around items-center w-24 h-20 border border-gray-300"
+            "relative h-32 w-32 m-1 cursor-pointer hover:bg-gray-400 hover:border-0 flex flex-col justify-around items-center w-24 h-20 border border-gray-300"
           )}
         >
           <div className="flex flex-col items-center">
@@ -153,7 +153,7 @@ const Catalogue = ({ onClick }) => {
         data-card="3"
         className={classnames(
           { "bg-gray-300": selected === 3 },
-          "relative h-48 w-32 m-1 cursor-pointer hover:bg-gray-400 hover:border-0 flex flex-col justify-around items-center w-24 h-20 border border-gray-300"
+          "relative h-32 w-32 m-1 cursor-pointer hover:bg-gray-400 hover:border-0 flex flex-col justify-around items-center w-24 h-20 border border-gray-300"
         )}
       >
         <div className="flex flex-col items-center">

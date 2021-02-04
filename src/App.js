@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import Config from "./Config";
 import CanvasGrid from "./Grid";
 import Catalogue from "./Catalogue";
-import { buildMatrix, REDUCER } from "./utils";
+import LineChart from "./LineChart";
 
+import { buildMatrix, REDUCER } from "./utils";
 let size = 50;
 const threshold = 0.66;
 const initialMatrix = buildMatrix(REDUCER.random({ size, threshold }));
@@ -12,7 +13,7 @@ function App() {
   const [matrix, setMatrix] = useState(initialMatrix);
   const [config, setConfig] = useState({
     stepCount: 1,
-    stopped: false,
+    stopped: true,
     isDrawing: true,
     dead: false,
     pattern: [[1]],
@@ -21,59 +22,67 @@ function App() {
     delay: 100,
   });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const { stopped, dead, borders, stepCount } = config;
-      if (stopped || dead) return;
-      const [nextMatrix, isDead] = buildMatrix(
-        REDUCER.stepwise({ matrix, borders })
-      );
-      setMatrix(nextMatrix);
-      setConfig({
-        ...config,
-        dead: isDead,
-        stepCount: stepCount + 1,
-      });
-    }, config.delay);
+  const mergeConfig = useCallback(
+    (partialConfig) => setConfig({ ...config, ...partialConfig }),
+    [config]
+  );
 
-    return () => clearInterval(interval);
-  });
+  function setNextStepOfGame(matrix, config) {
+    const { borders, stepCount } = config;
+    const [nextMatrix, isDead] = buildMatrix(
+      REDUCER.stepwise({ matrix, borders })
+    );
+    setMatrix(nextMatrix);
+    setConfig({
+      ...config,
+      dead: isDead,
+      stepCount: stepCount + 1,
+    });
+  }
 
   const onConfigChange = useCallback(
     ({ action }) => {
-      let c = { dead: false };
       switch (action) {
         case "stop":
-          c.stopped = true;
+          mergeConfig({
+            stopped: true,
+          });
           break;
         case "start":
-          c.stopped = false;
+          mergeConfig({
+            stopped: false,
+          });
           break;
         case "restart":
           setMatrix(buildMatrix(REDUCER.random({ size, threshold })));
-          c.stepCount = 1;
+          mergeConfig({
+            stepCount: 1,
+            dead: false,
+          });
           break;
         case "clear":
           setMatrix(buildMatrix(REDUCER.empty({ size })));
-          c.stepCount = 1;
-          c.dead = true;
+          mergeConfig({
+            stepCount: 1,
+            dead: true,
+            stopped: true,
+          });
           break;
         case "draw:toggle":
-          c.isDrawing = !config.isDrawing;
+          mergeConfig({
+            isDrawing: !config.isDrawing,
+          });
           break;
         case "borders:toggle":
-          c.borders = !config.borders;
+          mergeConfig({
+            borders: !config.borders,
+          });
           break;
         default:
           break;
       }
-
-      setConfig({
-        ...config,
-        ...c,
-      });
     },
-    [config]
+    [config, matrix, mergeConfig]
   );
 
   const onGridClick = useCallback(
@@ -105,15 +114,21 @@ function App() {
   );
 
   return (
-    <main className="p-4 w-screen h-screen grid grid-cols-2 gap-4 bg-gray-200">
-      <div className="">
-        <h1 className="inline-block px-4 mb-3 text-4xl bg-gray-100 shadow-md">
+    <main className="p-4 w-screen h-screen flex flex-col flex-wrap gap-2 bg-gray-400 items-start justify-start">
+      <h1 className="inline-block px-4 text-4xl bg-gray-100 shadow-md col-start-1">
+        <a
+          href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Conway's Game of Life
-        </h1>
-        <div className="bg-gray-100 shadow-md mb-3">
+        </a>
+      </h1>
+      <div className="bg-gray-100 shadow-md">
+        <div className="inline-block col-start-2">
           <Config config={config} onChange={onConfigChange} />
         </div>
-        <div className="bg-gray-100 shadow-md">
+        <div className="inline-block">
           <Catalogue onClick={onCatalogueClick} />
         </div>
       </div>
