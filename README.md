@@ -1,6 +1,12 @@
 # Conway's Game of Life
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+How to run this application in three steps:
+
+1. Clone this Github repository to a location of your choosing.
+2. Inside of the project run `npm install && npm start` and wait for the application to start running in development mode.
+3. The application by default is served from http://localhost:3000](http://localhost:3000).
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). See additional details about CRA + available scripts below.
 
 ## Available Scripts
 
