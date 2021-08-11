@@ -8,7 +8,7 @@ let size = 50;
 const threshold = 0.66;
 const initialMatrix = buildMatrix(REDUCER.random({ size, threshold }));
 
-function App() {
+function HomePage() {
   const [matrix, setMatrix] = useState(initialMatrix);
   const [config, setConfig] = useState({
     stepCount: 1,
@@ -131,4 +131,4 @@ function App() {
   );
 }
 
-export default App;
+export default HomePage;
