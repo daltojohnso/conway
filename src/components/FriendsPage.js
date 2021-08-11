@@ -4,7 +4,7 @@ class FriendsPage extends React.Component {
   render() {
     const { friends } = this.props;
     return (
-      <main className="p-4 pt-0 w-screen ">
+      <main className="p-4 pt-0 w-screen bg-gray-400 h-screen">
         <div className="p-4 bg-white shadow-md">
           {friends ? "Friends fetched!" : "Loading..."}
         </div>
