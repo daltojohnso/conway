@@ -41,11 +41,11 @@ function instantiateMatrix(size, initCell) {
 }
 
 function buildEmptyMatrix({ size }) {
-  return instantiateMatrix(size, () => false);
+  return instantiateMatrix(size, () => 0);
 }
 
 function buildRandomMatrix({ size, threshold }) {
-  return instantiateMatrix(size, () => Math.random() > threshold);
+  return instantiateMatrix(size, () => Number(Math.random() > threshold));
 }
 
 function addPatternToLocation({ location: [i, j], pattern }) {
@@ -87,6 +87,7 @@ function buildNextMatrix({ matrix }, getCellState) {
 function getNextCellState({ borders }) {
   return (i, j, matrix) => {
     const currentState = matrix[i][j];
+    const isCurrentlyAlive = currentState === 1;
     const num = countNeighbors(i, j, matrix, borders);
 
     // Any live cell with fewer than two live neighbours dies, as if by underpopulation.
@@ -94,9 +95,8 @@ function getNextCellState({ borders }) {
     // Any live cell with more than three live neighbours dies, as if by overpopulation.
     // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 
-    // return currentState ? (num === 2 || num === 3) : num === 3;
-    const newState = currentState ? num === 2 || num === 3 : num === 3; // || (num === 2 && Math.random() > 0.99);
-    return newState;
+    const isAlive = isCurrentlyAlive ? num === 2 || num === 3 : num === 3;
+    return isAlive ? 1 : 0;
   };
 }
 
